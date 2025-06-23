@@ -1,0 +1,36 @@
+ai-chat-web-platform/
+├── backend/
+│   ├── src/
+│   │   ├── Controllers/
+│   │   ├── Services/
+│   │   ├── Models/
+│   │   ├── Security/
+│   │   ├── Blockchain/
+│   │   ├── Compliance/
+│   │   ├── AI/
+│   │   ├── Utils/
+│   │   └── KernelIntegration/   # For kernel-level hooks (conceptual)
+│   ├── tests/
+│   ├── config/
+│   ├── Dockerfile
+│   ├── composer.json
+│   └── README.md
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   └── utils/
+│   ├── package.json
+│   ├── webpack.config.js
+│   └── README.md
+├── kubernetes/
+│   ├── deployments/
+│   ├── services/
+│   ├── configmaps/
+│   └── secrets/
+└── docs/
+    ├── architecture.md
+    ├── deployment.md
+    └── security.md
