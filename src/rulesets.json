@@ -1,0 +1,261 @@
+{
+  "ruleset_metadata": {
+    "version": "1.0",
+    "author": "Assistant",
+    "created": "2025-06-23T02:11:00-07:00",
+    "last_updated": "2025-06-23T02:11:00-07:00"
+  },
+  "categories": {
+    "user_management": [
+      {
+        "id": "UM001",
+        "description": "Users must have unique usernames.",
+        "priority": "high",
+        "conditions": ["username is not unique"],
+        "actions": ["reject registration", "notify user with error message"]
+      },
+      {
+        "id": "UM002",
+        "description": "Passwords must meet complexity requirements.",
+        "priority": "high",
+        "conditions": ["password length < 12", "password lacks special characters or numbers"],
+        "actions": ["reject password", "provide complexity guidelines"]
+      },
+      {
+        "id": "UM003",
+        "description": "Implement a reputation system for user trust.",
+        "priority": "medium",
+        "conditions": ["user performs trusted action"],
+        "actions": ["increment reputation score", "adjust permissions based on score"]
+      },
+      {
+        "id": "UM004",
+        "description": "Accounts inactive for 90 days are deactivated.",
+        "priority": "medium",
+        "conditions": ["last login > 90 days"],
+        "actions": ["deactivate account", "notify user"]
+      }
+    ],
+    "data_handling": [
+      {
+        "id": "DH001",
+        "description": "Data must be encrypted at rest.",
+        "priority": "critical",
+        "conditions": ["data is stored"],
+        "actions": ["encrypt data using AES-256"]
+      },
+      {
+        "id": "DH002",
+        "description": "Data must be encrypted in transit.",
+        "priority": "critical",
+        "conditions": ["data is being transmitted"],
+        "actions": ["use protocol from config.secure_protocols"]
+      },
+      {
+        "id": "DH003",
+        "description": "Apply differential privacy to sensitive data.",
+        "priority": "high",
+        "conditions": ["data is used for analysis"],
+        "actions": ["add noise to data", "log privacy application"]
+      },
+      {
+        "id": "DH004",
+        "description": "Enforce data retention policies.",
+        "priority": "medium",
+        "conditions": ["data age > retention_period"],
+        "actions": ["archive or delete data"]
+      }
+    ],
+    "security": [
+      {
+        "id": "SEC001",
+        "description": "Implement multi-factor authentication.",
+        "priority": "critical",
+        "conditions": ["user logs in"],
+        "actions": ["require MFA", "log authentication attempt"]
+      },
+      {
+        "id": "SEC002",
+        "description": "Use AI to detect threats based on behavior.",
+        "priority": "high",
+        "conditions": ["unusual user activity detected"],
+        "actions": ["trigger AI analysis", "alert security team if threat confirmed"]
+      },
+      {
+        "id": "SEC003",
+        "description": "Conduct periodic security audits.",
+        "priority": "medium",
+        "conditions": ["time since last audit > 6 months"],
+        "actions": ["schedule audit", "notify compliance team"]
+      },
+      {
+        "id": "SEC004",
+        "description": "Implement a bug bounty program.",
+        "priority": "low",
+        "conditions": ["system is live"],
+        "actions": ["publish bounty program", "track submissions"]
+      }
+    ],
+    "performance": [
+      {
+        "id": "PERF001",
+        "description": "Optimize database queries.",
+        "priority": "high",
+        "conditions": ["query execution time > threshold"],
+        "actions": ["index tables", "rewrite query"]
+      },
+      {
+        "id": "PERF002",
+        "description": "Use predictive scaling with machine learning.",
+        "priority": "medium",
+        "conditions": ["traffic pattern analysis available"],
+        "actions": ["predict load", "scale resources preemptively"]
+      },
+      {
+        "id": "PERF003",
+        "description": "Implement caching for frequent requests.",
+        "priority": "high",
+        "conditions": ["request frequency > threshold"],
+        "actions": ["cache response", "set expiration"]
+      }
+    ],
+    "error_handling": [
+      {
+        "id": "ERR001",
+        "description": "Catch and log all exceptions.",
+        "priority": "high",
+        "conditions": ["exception occurs"],
+        "actions": ["log exception details", "notify developers"]
+      },
+      {
+        "id": "ERR002",
+        "description": "Implement self-healing for known errors.",
+        "priority": "medium",
+        "conditions": ["known error pattern detected"],
+        "actions": ["attempt recovery", "log recovery attempt"]
+      },
+      {
+        "id": "ERR003",
+        "description": "Use circuit breakers for service failures.",
+        "priority": "high",
+        "conditions": ["service failure rate > threshold"],
+        "actions": ["open circuit", "reroute traffic"]
+      }
+    ],
+    "logging_and_monitoring": [
+      {
+        "id": "LOG001",
+        "description": "Log all significant events.",
+        "priority": "high",
+        "conditions": ["event occurs"],
+        "actions": ["record event in structured format"]
+      },
+      {
+        "id": "LOG002",
+        "description": "Use anomaly detection for unusual patterns.",
+        "priority": "medium",
+        "conditions": ["log data available"],
+        "actions": ["analyze with anomaly model", "alert if anomaly detected"]
+      },
+      {
+        "id": "LOG003",
+        "description": "Retain logs for auditing.",
+        "priority": "medium",
+        "conditions": ["log age < retention_period"],
+        "actions": ["store securely"]
+      }
+    ],
+    "configuration": [
+      {
+        "id": "CONF001",
+        "description": "Use environment variables for settings.",
+        "priority": "high",
+        "conditions": ["system initializes"],
+        "actions": ["load settings from env"]
+      },
+      {
+        "id": "CONF002",
+        "description": "Allow dynamic configuration updates.",
+        "priority": "medium",
+        "conditions": ["config change requested"],
+        "actions": ["apply update without restart", "log change"]
+      },
+      {
+        "id": "CONF003",
+        "description": "Validate configuration values.",
+        "priority": "high",
+        "conditions": ["config is loaded"],
+        "actions": ["check against schema", "reject invalid values"]
+      }
+    ],
+    "integration": [
+      {
+        "id": "INT001",
+        "description": "Use standard protocols for data exchange.",
+        "priority": "high",
+        "conditions": ["integration requested"],
+        "actions": ["use REST or GraphQL"]
+      },
+      {
+        "id": "INT002",
+        "description": "Implement API gateway for external services.",
+        "priority": "medium",
+        "conditions": ["external service call made"],
+        "actions": ["route through gateway", "apply security policies"]
+      },
+      {
+        "id": "INT003",
+        "description": "Handle rate limiting for integrations.",
+        "priority": "high",
+        "conditions": ["request rate > limit"],
+        "actions": ["throttle requests", "notify caller"]
+      }
+    ],
+    "user_interface": [
+      {
+        "id": "UI001",
+        "description": "Ensure UI accessibility.",
+        "priority": "high",
+        "conditions": ["UI is rendered"],
+        "actions": ["apply WCAG standards"]
+      },
+      {
+        "id": "UI002",
+        "description": "Implement A/B testing for UX improvements.",
+        "priority": "medium",
+        "conditions": ["user base > threshold"],
+        "actions": ["deploy variants", "analyze engagement"]
+      },
+      {
+        "id": "UI003",
+        "description": "Use responsive design.",
+        "priority": "high",
+        "conditions": ["device type varies"],
+        "actions": ["adapt layout"]
+      }
+    ],
+    "compliance": [
+      {
+        "id": "COMP001",
+        "description": "Adhere to GDPR regulations.",
+        "priority": "critical",
+        "conditions": ["user data processed"],
+        "actions": ["obtain consent", "log processing"]
+      },
+      {
+        "id": "COMP002",
+        "description": "Use automated compliance scanning.",
+        "priority": "medium",
+        "conditions": ["code or config updated"],
+        "actions": ["run compliance tool", "report violations"]
+      },
+      {
+        "id": "COMP003",
+        "description": "Provide data deletion mechanisms.",
+        "priority": "high",
+        "conditions": ["user requests deletion"],
+        "actions": ["delete data", "confirm with user"]
+      }
+    ]
+  }
+}
