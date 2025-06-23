@@ -468,7 +468,467 @@ IF token IS NOT NULL AND status == SUCCESS AND result.authorization_state == "ex
 copyCopy code
 PRINT("Test Privileged Device Authorization Passed") 
 ELSE
+1. Project Structure & Essential Files
+copyCopy code
+/ai-model-setup/
+├── docker-compose.yml          # Container orchestration
+├── Dockerfile                 # PHP/Node/Python environment
+├── .github/
+│   └── workflows/
+│       └── ci-cd-pipeline.yml # GitHub Actions CI/CD pipeline
+├── src/
+│   ├── api/
+│   │   ├── index.php          # PHP API entrypoint for token & AI calls
+│   │   └── validate-token.php
+│   ├── client/
+│   │   ├── HybridTokenClient.php  # PHP SDK client
+│   │   ├── hybridTokenClient.js   # JS SDK client
+│   │   └── hybrid_token_client.py # Python SDK client
+│   ├── integrators/           # AI platform integrators (ChatGPT, Qwen, etc.)
+│   ├── security/
+│   │   └── AccessTokenService.php
+│   └── utils/
+│       └── RedisSessionStore.php
+├── config/
+│   ├── app-config.yaml        # App & AI model config
+│   ├── security-config.yaml   # Crypto & key management config
+│   └── redis-config.yaml      # Redis config for sessions & nonce store
+├── scripts/
+│   ├── setup.sh               # Automated setup script
+│   └── deploy.sh              # Deployment automation
+├── tests/
+│   └── AccessTokenServiceTest.php
+├── README.md
+└── security-whitepaper.md
+2. Key Configurations & Examples
+docker-compose.yml
+yaml
+copyCopy code
+version: '3.8'
+services:
+  php-app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/var/www/html/src
+      - ./src/api:/var/www/html/api
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+Dockerfile
+dockerfile
+copyCopy code
+FROM php:8.1-apache
+
+RUN apt-get update && apt-get install -y libzip-dev zip unzip git \
+    && docker-php-ext-install zip
+
+RUN pecl install redis && docker-php-ext-enable redis
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY composer.json composer.lock* /var/www/html/
+RUN composer install --no-dev --optimize-autoloader
+
+COPY src/ /var/www/html/src/
+COPY src/api/ /var/www/html/api/
+
+RUN a2enmod rewrite
+
+EXPOSE 80
+CMD ["apache2-foreground"]
+GitHub Actions Workflow: 
+.github/workflows/ci-cd-pipeline.yml
+yaml
+copyCopy code
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Run PHP Unit Tests
+        run: vendor/bin/phpunit --coverage-text
+
+      - name: Static Analysis
+        run: vendor/bin/phpstan analyse src --level=max
+
+  docker-build-push:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: yourdockerhubuser/ai-model-setup:latest
+
+  deploy:
+    needs: docker-build-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy with Ansible
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: ansible/deploy.yml
+          inventory: ansible/inventory/production
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+3. Sample PHP API Endpoint (
+src/api/index.php
+)
+php
+copyCopy code
+<?php
+require_once __DIR__ . '/../security/AccessTokenService.php';
+require_once __DIR__ . '/../utils/RedisSessionStore.php';
+
+use HybridToken\AccessTokenService;
+use HybridToken\RedisSessionStore;
+
+header('Content-Type: application/json; charset=utf-8');
+
+$secretKey = getenv('SECRET_KEY') ?: 'ChangeMeNow!';
+$redisHost = getenv('REDIS_HOST') ?: 'redis';
+$redisPort = getenv('REDIS_PORT') ?: 6379;
+
+$tokenService = new AccessTokenService(['secret_key' => $secretKey]);
+$sessionStore = new RedisSessionStore($redisHost, $redisPort);
+
+try {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    $deviceIdBase64 = $input['device_id'] ?? null;
+    $accessLevel = $input['access_level'] ?? 'STANDARD';
+    $adminKey = $input['admin_key'] ?? null;
+
+    if (!$deviceIdBase64) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Missing device_id']);
+        exit;
+    }
+
+    $deviceId = base64_decode($deviceIdBase64, true);
+    if ($deviceId === false) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid device_id encoding']);
+        exit;
+    }
+
+    list($token, $status, $result) = $tokenService->generateAccessToken($deviceId, $accessLevel, $adminKey);
+
+    if ($status === AccessTokenService::SUCCESS) {
+        // Set secure cookie
+        setcookie('ai_session.id', $result['session_id'], [
+            'expires' => $result['expires'],
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+
+        echo json_encode([
+            'message' => 'Access token issued',
+            'token' => $token,
+            'session_id' => $result['session_id'],
+            'access_level' => $result['access_level'],
+            'query_limit' => $result['query_limit'],
+            'expires' => $result['expires'],
+            'authorization_state' => $result['authorization_state'],
+        ]);
+    } else {
+        http_response_code(403);
+        echo json_encode(['error' => $result, 'error_code' => $status]);
+    }
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode(['error' => $e->getMessage()]);
+}
+4. Sample 
+.yaml
+ Configuration (
+config/app-config.yaml
+)
+yaml
+copyCopy code
+app:
+  device_id_length: 32
+  token_expiry_seconds: 720000
+  default_query_limit: 500
+  max_access_role_bits: 32767
+  session_store: redis
+  hash_algorithm: sha512
+  audit_enabled: true
+  location_provider: geo_api
+  device_type_detector: header
+  privileged_device_types:
+    - AI_CLIENT
+    - ADMIN_DEVICE
+  privileged_device_marker: ai_client
+  default_admin_key: SECURE_KEY_123
+  session_cookie_name: ai_session.id
+  compliance_profile: AI_COMPLIANCE_V1
+5. JavaScript Client SDK (
+src/client/hybridTokenClient.js
+)
+jsx
+copyCopy code
+class HybridTokenClient {
+  constructor(apiUrl) {
+    this.apiUrl = apiUrl.endsWith('/') ? apiUrl.slice(0, -1) : apiUrl;
+    this.token = null;
+  }
+
+  async requestToken(deviceIdBase64, accessLevel = 'STANDARD', adminKey = null) {
+    const body = new URLSearchParams({
+      device_id: deviceIdBase64,
+      access_level: accessLevel,
+    });
+    if (adminKey) {
+      body.append('admin_key', adminKey);
+    }
+
+    const response = await fetch(`${this.apiUrl}/token`, {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      this.token = data.token;
+      return true;
+    }
+    return false;
+  }
+
+  getToken() {
+    return this.token;
+  }
+}
+
+export default HybridTokenClient;
+6. Python Client SDK (
+src/client/hybrid_token_client.py
+)
+python
+copyCopy code
+import requests
+import base64
+
+class HybridTokenClient:
+    def __init__(self, api_url):
+        self.api_url = api_url.rstrip('/')
+        self.token = None
+
+    def request_token(self, device_id_base64, access_level='STANDARD', admin_key=None):
+        payload = {
+            'device_id': device_id_base64,
+            'access_level': access_level,
+        }
+        if admin_key:
+            payload['admin_key'] = admin_key
+
+        response = requests.post(f"{self.api_url}/token", data=payload)
+        if response.status_code == 200:
+            self.token = response.json().get('token')
+            return True
+        return False
+
+    def get_token(self):
+        return self.token
+7. PHP SDK Client (
+src/client/HybridTokenClient.php
+)
+php
+copyCopy code
+<?php
+namespace HybridToken\Client;
+
+class HybridTokenClient
+{
+    private string $apiUrl;
+    private ?string $token = null;
+
+    public function __construct(string $apiUrl)
+    {
+        $this->apiUrl = rtrim($apiUrl, '/');
+    }
+
+    public function requestToken(string $deviceIdBase64, string $accessLevel = 'STANDARD', ?string $adminKey = null): bool
+    {
+        $postData = [
+            'device_id' => $deviceIdBase64,
+            'access_level' => $accessLevel,
+        ];
+        if ($adminKey !== null) {
+            $postData['admin_key'] = $adminKey;
+        }
+
+        $ch = curl_init("{$this->apiUrl}/token");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode === 200) {
+            $data = json_decode($response, true);
+            $this->token = $data['token'] ?? null;
+            return $this->token !== null;
+        }
+        return false;
+    }
+
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+}
+8. Sample 
+.dll
+ / Native Library Guidance
+For Windows native integration (e.g., C++ DLL for token validation or AI inference), compile a DLL exposing C-callable APIs for:
+
+Token validation (accepting JWT string)
+Session management via Redis client bindings
+AI model serving (if applicable)
+Use SWIG or PHP’s FFI to interface with the DLL from PHP or other languages.
+
+(Due to complexity, actual DLL code depends on your AI model framework and environment.)
+
+9. Deployment Automation Script (
+scripts/setup.sh
+)
+bash
+copyCopy code
+#!/bin/bash
+set -e
+
+echo "Installing PHP dependencies..."
+composer install
+
+echo "Building and starting Docker containers..."
+docker-compose up --build -d
+
+echo "Setup complete. AI Model environment is ready."
+10. Security Enhancements (config/security-config.yaml)
+yaml
+copyCopy code
+crypto:
+  hash_algorithm: sha512
+  key_rotation_days: 90
+  use_hsm: false
+  admin_key_storage: vault
+  enforce_tls: true
+  tls_version: 1.3
+
+audit:
+  enabled: true
+  log_path: /var/log/ai_access_audit.log
+  alert_threshold: 5  # failed attempts per minute
+
+rate_limiting:
+  enabled: true
+  max_requests_per_minute: 1000
+
+session:
+  store: redis
+  ttl_seconds: 720000
+  secure_cookies: true
+  http_only_cookies: true
+  same_site: strict
+11. README.md Starter Snippet
+markdown
+copyCopy code
+# AI Model Setup (ChatGPT-4.1o)
+
+## Overview
+
+This repository contains all necessary code, configs, SDKs, and automation scripts to deploy and integrate AI models with secure hybrid access token system.
+
+## Setup
+
+1. Set environment variables:
+   ```bash
+   export SECRET_KEY="YourSuperSecretKey"
+Run setup script:
+
+bash
+copyCopy code
+./scripts/setup.sh
+Access API at 
+http://localhost:8080/api
+
+Usage
+Use provided SDKs (PHP, JS, Python) to request access tokens.
+Validate tokens on API endpoints.
+Integrate AI workflows using 
+AiPlugin
+ class.
+Security
+Tokens are cryptographically signed and bound to devices.
+Sessions are stored securely in Redis.
+Audit logging and rate limiting enabled.
+Contributing
+Please submit PRs with tests and documentation.
+
+License
+MIT
+
+copyCopy code
+
+---
+
+# 12. Final Notes & Next Steps
+
+- You can customize all configs under `config/` for your environment.
+- Integrate with your AI model serving framework (e.g., OpenAI API, custom GPT) by adding platform-specific integrators.
+- Extend security with Vault, HSM, or MFA as needed.
+- Use GitHub Actions for automated testing, building, and deployment.
+- Leverage Redis for session and nonce storage to prevent replay attacks.
+- Use Docker and Kubernetes for scalable cluster deployments.
+
+---
+
+If you want, I can generate **full individual files** or **zip packages** for any of these componen
 copyCopy code
 PRINT("Test Privileged Device Authorization Failed") 
 END IF device_id_length: 32, // Longer device IDs for security
