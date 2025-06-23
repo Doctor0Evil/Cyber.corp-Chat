@@ -1,0 +1,647 @@
+{
+  "ruleset_metadata": {
+    "version": "1.2.0",
+    "author": "Jacob Scott Farmer",
+    "created": "2025-06-23T02:32:00-07:00",
+    "last_updated": "2025-06-23T02:32:00-07:00",
+    "description": "Exhaustive MCP configuration for VR: Fortress-System and Cyber.corp integration",
+    "compliance_standards": ["GDPR", "SOC2", "ISO27001", "18 U.S.C. § 1030"],
+    "security": {
+      "encryption": "AES-256-GCM",
+      "mfa": "DNA-based",
+      "audit": "QuantumLedger",
+      "interval": "safe-auto (5s-300s)"
+    },
+    "binary_output": "Base64:Zm9ydHJlc3MtbXAtY29uZmlnLXYxLjIuMCAyMDI1="
+  },
+  "categories": {
+    "user_management": [
+      {
+        "id": "UM001",
+        "description": "Ensure unique usernames for players",
+        "priority": "high",
+        "conditions": ["username exists in z://ecosystem/users/"],
+        "actions": ["reject registration", "notify via Web Push: 'Username taken'"],
+        "metadata": {"game_context": "player onboarding", "compliance": "GDPR"}
+      },
+      {
+        "id": "UM002",
+        "description": "Enforce complex passwords",
+        "priority": "high",
+        "conditions": ["password length < 12", "password lacks special characters or numbers"],
+        "actions": ["reject password", "send guidelines via Web Push"],
+        "metadata": {"security_level": "Class-3", "compliance": "ISO27001"}
+      },
+      {
+        "id": "UM003",
+        "description": "Reputation system for player trust",
+        "priority": "medium",
+        "conditions": ["player completes activity (e.g., trade, crafting)"],
+        "actions": ["increment reputation in z://ecosystem/users/{USER_ID}/", "unlock permissions"],
+        "metadata": {"game_context": "survival mechanics"}
+      },
+      {
+        "id": "UM004",
+        "description": "Deactivate inactive accounts",
+        "priority": "medium",
+        "conditions": ["last login > 90 days"],
+        "actions": ["deactivate in z://ecosystem/users/{USER_ID}/", "notify via email"],
+        "metadata": {"compliance": "GDPR"}
+      },
+      {
+        "id": "UM005",
+        "description": "DNA-based MFA for Class-3 access",
+        "priority": "critical",
+        "conditions": ["user requests Class-3 action (e.g., !orchestrateBasin)"],
+        "actions": ["require 256-bit DNA hash", "log to z://cybercorp/audit/"],
+        "metadata": {"security": "DNA MFA", "compliance": "SOC2"}
+      },
+      {
+        "id": "UM006",
+        "description": "Limit concurrent sessions",
+        "priority": "high",
+        "conditions": ["user has > 3 active sessions"],
+        "actions": ["terminate oldest session", "notify via Web Push"],
+        "metadata": {"security": "session management"}
+      }
+    ],
+    "data_handling": [
+      {
+        "id": "DH001",
+        "description": "Encrypt game and chat data at rest",
+        "priority": "critical",
+        "conditions": ["data stored in z://ecosystem/ or z://cybercorp/"],
+        "actions": ["encrypt with AES-256-GCM", "store key in VSC KMS"],
+        "metadata": {"security": "AES-256", "compliance": "ISO27001"}
+      },
+      {
+        "id": "DH002",
+        "description": "Encrypt data in transit",
+        "priority": "critical",
+        "conditions": ["data transmitted via WebSocket/WebRTC"],
+        "actions": ["use TLS 1.4", "log transmission to z://ecosystem/mpc/audit/"],
+        "metadata": {"security": "TLS 1.4", "compliance": "SOC2"}
+      },
+      {
+        "id": "DH003",
+        "description": "Apply differential privacy to analytics",
+        "priority": "high",
+        "conditions": ["analytics for activities (e.g., fishing success rate)"],
+        "actions": ["add noise via ARTEMIS ML", "log to z://ecosystem/mpc/audit/"],
+        "metadata": {"compliance": "GDPR"}
+      },
+      {
+        "id": "DH004",
+        "description": "Enforce data retention policies",
+        "priority": "medium",
+        "conditions": ["data age > 180 days"],
+        "actions": ["archive to z://archive/", "notify compliance team via email"],
+        "metadata": {"compliance": "SOC2"}
+      },
+      {
+        "id": "DH005",
+        "description": "Shard data across VDD",
+        "priority": "high",
+        "conditions": ["data volume > 1TB"],
+        "actions": ["distribute across 100 VDD shards", "log to p://configs/web/mpc/logs/"],
+        "metadata": {"storage": "VDD", "performance": "scalability"}
+      },
+      {
+        "id": "DH006",
+        "description": "Backup critical data",
+        "priority": "critical",
+        "conditions": ["data in z://ecosystem/ modified"],
+        "actions": ["backup to z://backup/", "encrypt with AES-256-GCM"],
+        "metadata": {"compliance": "ISO27001", "resilience": "backup"}
+      }
+    ],
+    "security": [
+      {
+        "id": "SEC001",
+        "description": "Multi-factor authentication for login",
+        "priority": "critical",
+        "conditions": ["player or admin logs in"],
+        "actions": ["require DNA MFA", "log to z://cybercorp/audit/"],
+        "metadata": {"security": "DNA MFA", "compliance": "SOC2"}
+      },
+      {
+        "id": "SEC002",
+        "description": "Detect threats via ARTEMIS ML",
+        "priority": "high",
+        "conditions": ["unusual activity (e.g., rapid lockpick attempts)"],
+        "actions": ["trigger ML analysis", "alert via PagerDuty"],
+        "metadata": {"security": "ARTEMIS ML", "compliance": "ISO27001"}
+      },
+      {
+        "id": "SEC003",
+        "description": "Periodic security audits",
+        "priority": "medium",
+        "conditions": ["time since last audit > 6 months"],
+        "actions": ["schedule audit", "log to QuantumLedger"],
+        "metadata": {"compliance": "ISO27001"}
+      },
+      {
+        "id": "SEC004",
+        "description": "Bug bounty program",
+        "priority": "low",
+        "conditions": ["VCS is live"],
+        "actions": ["publish bounty on TypeWriter", "track submissions"],
+        "metadata": {"security": "crowdsourced"}
+      },
+      {
+        "id": "SEC005",
+        "description": "Quantum signatures for audit trails",
+        "priority": "critical",
+        "conditions": ["audit event logged"],
+        "actions": ["sign with 256-bit ECDSA", "store in z://ecosystem/mpc/audit/"],
+        "metadata": {"security": "QuantumLedger", "compliance": "SOC2"}
+      },
+      {
+        "id": "SEC006",
+        "description": "Prevent XSS and SQL injection",
+        "priority": "critical",
+        "conditions": ["user input processed"],
+        "actions": ["sanitize input", "use prepared statements"],
+        "metadata": {"security": "input validation", "compliance": "ISO27001"}
+      },
+      {
+        "id": "SEC007",
+        "description": "Isolate chat sessions",
+        "priority": "high",
+        "conditions": ["chat session initiated"],
+        "actions": ["run in VSC container", "set 60s timeout"],
+        "metadata": {"security": "sandboxing"}
+      }
+    ],
+    "performance": [
+      {
+        "id": "PERF001",
+        "description": "Optimize activity processing",
+        "priority": "high",
+        "conditions": ["processing time > 10ms"],
+        "actions": ["use GPU acceleration", "cache results in Redis"],
+        "metadata": {"performance": "low latency", "game_context": "activity processing"}
+      },
+      {
+        "id": "PERF002",
+        "description": "Predictive scaling for basins",
+        "priority": "medium",
+        "conditions": ["activity load > 80%"],
+        "actions": ["scale Kubernetes pods", "log to p://configs/web/mpc/logs/"],
+        "metadata": {"performance": "auto-scaling", "basin": "compute"}
+      },
+      {
+        "id": "PERF003",
+        "description": "Cache frequent game states",
+        "priority": "high",
+        "conditions": ["game state requests > 100/s"],
+        "actions": ["cache in Memcached", "set 300s expiration"],
+        "metadata": {"performance": "caching", "game_context": "game state"}
+      },
+      {
+        "id": "PERF004",
+        "description": "Ensure 99.999% uptime",
+        "priority": "critical",
+        "conditions": ["service downtime detected"],
+        "actions": ["trigger active-active failover", "alert via Slack"],
+        "metadata": {"performance": "high availability", "resilience": "failover"}
+      },
+      {
+        "id": "PERF005",
+        "description": "Optimize chat response time",
+        "priority": "high",
+        "conditions": ["chat response time > 10ms"],
+        "actions": ["use ARTEMIS AI caching", "log to Prometheus"],
+        "metadata": {"performance": "chat latency", "integration": "Cyber.corp"}
+      }
+    ],
+    "error_handling": [
+      {
+        "id": "ERR001",
+        "description": "Log all exceptions",
+        "priority": "high",
+        "conditions": ["exception in activity/chat processing"],
+        "actions": ["log to p://configs/web/mpc/logs/", "notify developers via Slack"],
+        "metadata": {"error_handling": "logging"}
+      },
+      {
+        "id": "ERR002",
+        "description": "Self-healing for known errors",
+        "priority": "medium",
+        "conditions": ["known error pattern (e.g., WebSocket timeout)"],
+        "actions": ["retry operation", "log to z://ecosystem/mpc/audit/"],
+        "metadata": {"error_handling": "self-healing"}
+      },
+      {
+        "id": "ERR003",
+        "description": "Circuit breakers for service failures",
+        "priority": "high",
+        "conditions": ["service failure rate > 5%"],
+        "actions": ["open circuit", "reroute to backup"],
+        "metadata": {"error_handling": "resilience", "resilience": "circuit breaker"}
+      },
+      {
+        "id": "ERR004",
+        "description": "Zero-damage hardware protection",
+        "priority": "critical",
+        "conditions": ["high CPU/GPU load detected"],
+        "actions": ["engage Rust safety layer", "log to QuantumLedger"],
+        "metadata": {"error_handling": "hardware safety", "security": "zero-damage"}
+      },
+      {
+        "id": "ERR005",
+        "description": "Handle MCP schema violations",
+        "priority": "critical",
+        "conditions": ["config fails JSON schema"],
+        "actions": ["reject config", "notify admin via PagerDuty"],
+        "metadata": {"error_handling": "schema validation"}
+      }
+    ],
+    "logging_and_monitoring": [
+      {
+        "id": "LOG001",
+        "description": "Log all game and chat events",
+        "priority": "high",
+        "conditions": ["activity or chat event occurs"],
+        "actions": ["log in JSON-LD to z://ecosystem/mpc/audit/", "sign with ECDSA"],
+        "metadata": {"logging": "event tracking", "compliance": "SOC2"}
+      },
+      {
+        "id": "LOG002",
+        "description": "Anomaly detection for logs",
+        "priority": "medium",
+        "conditions": ["log data available"],
+        "actions": ["analyze with ARTEMIS ML", "alert via PagerDuty"],
+        "metadata": {"logging": "anomaly detection", "security": "ARTEMIS ML"}
+      },
+      {
+        "id": "LOG003",
+        "description": "Retain logs for auditing",
+        "priority": "medium",
+        "conditions": ["log age < 365 days"],
+        "actions": ["store in z://archive/", "encrypt with AES-256-GCM"],
+        "metadata": {"compliance": "ISO27001"}
+      },
+      {
+        "id": "LOG004",
+        "description": "Monitor chat performance",
+        "priority": "high",
+        "conditions": ["chat response time > 10ms"],
+        "actions": ["log to Prometheus", "alert via Slack"],
+        "metadata": {"monitoring": "chat performance", "integration": "Cyber.corp"}
+      },
+      {
+        "id": "LOG005",
+        "description": "Track basin orchestration",
+        "priority": "high",
+        "conditions": ["basin action executed"],
+        "actions": ["log to p://configs/basins/{BASIN}/logs/", "monitor via Grafana"],
+        "metadata": {"monitoring": "basin performance", "basin": "compute/security"}
+      }
+    ],
+    "configuration": [
+      {
+        "id": "CONF001",
+        "description": "Load MCP settings from environment",
+        "priority": "high",
+        "conditions": ["VCS initializes"],
+        "actions": ["load from p://configs/web/mpc/", "validate schema"],
+        "metadata": {"configuration": "environment", "compliance": "ISO27001"}
+      },
+      {
+        "id": "CONF002",
+        "description": "Dynamic configuration updates",
+        "priority": "medium",
+        "conditions": ["config change via !applyMCPConfig"],
+        "actions": ["apply without restart", "log to QuantumLedger"],
+        "metadata": {"configuration": "dynamic", "security": "audit"}
+      },
+      {
+        "id": "CONF003",
+        "description": "Validate MCP configurations",
+        "priority": "high",
+        "conditions": ["config loaded"],
+        "actions": ["validate against JSON schema", "reject invalid"],
+        "metadata": {"configuration": "validation", "error_handling": "schema"}
+      },
+      {
+        "id": "CONF004",
+        "description": "Seasonal configuration overrides",
+        "priority": "medium",
+        "conditions": ["holiday theme active (e.g., christmas)"],
+        "actions": ["apply lucky boost", "log to z://ecosystem/themes/holiday/"],
+        "metadata": {"game_context": "holiday mechanics"}
+      },
+      {
+        "id": "CONF005",
+        "description": "Encrypt configuration data",
+        "priority": "critical",
+        "conditions": ["config stored"],
+        "actions": ["encrypt with AES-256-GCM", "store key in KMS"],
+        "metadata": {"security": "AES-256", "compliance": "SOC2"}
+      }
+    ],
+    "integration": [
+      {
+        "id": "INT001",
+        "description": "Use gRPC for Cyber.corp chat",
+        "priority": "high",
+        "conditions": ["chat integration requested"],
+        "actions": ["use gRPC protocol", "log to z://cybercorp/audit/"],
+        "metadata": {"integration": "Cyber.corp", "performance": "low latency"}
+      },
+      {
+        "id": "INT002",
+        "description": "API gateway for external tools",
+        "priority": "medium",
+        "conditions": ["external service (e.g., Perplexity) called"],
+        "actions": ["route through NGINX gateway", "apply rate limiting"],
+        "metadata": {"integration": "external", "security": "gateway"}
+      },
+      {
+        "id": "INT003",
+        "description": "Rate limiting for integrations",
+        "priority": "high",
+        "conditions": ["request rate > 1000/s"],
+        "actions": ["throttle requests", "notify via Web Push"],
+        "metadata": {"integration": "rate limiting", "performance": "throttling"}
+      },
+      {
+        "id": "INT004",
+        "description": "WebXR for VR/AR gameplay",
+        "priority": "high",
+        "conditions": ["VR/AR activity triggered"],
+        "actions": ["enable WebXR", "load assets from z://assets/vr/"],
+        "metadata": {"game_context": "VR/AR", "performance": "rendering"}
+      },
+      {
+        "id": "INT005",
+        "description": "Blockchain logging for compliance",
+        "priority": "critical",
+        "conditions": ["chat or activity logged"],
+        "actions": ["log to Polygon", "sign with ECDSA"],
+        "metadata": {"integration": "blockchain", "compliance": "SOC2"}
+      }
+    ],
+    "user_interface": [
+      {
+        "id": "UI001",
+        "description": "Accessible VCS UI",
+        "priority": "high",
+        "conditions": ["UI rendered"],
+        "actions": ["apply WCAG 2.1 standards", "test with screen readers"],
+        "metadata": {"ui": "accessibility", "compliance": "GDPR"}
+      },
+      {
+        "id": "UI002",
+        "description": "A/B testing for Cyber.corp UX",
+        "priority": "medium",
+        "conditions": ["player base > 1000"],
+        "actions": ["deploy UI variants", "track via Splunk"],
+        "metadata": {"ui": "A/B testing", "performance": "engagement"}
+      },
+      {
+        "id": "UI003",
+        "description": "Responsive design for VCS",
+        "priority": "high",
+        "conditions": ["device type varies"],
+        "actions": ["use Tailwind CSS", "adapt layout"],
+        "metadata": {"ui": "responsive", "performance": "rendering"}
+      },
+      {
+        "id": "UI004",
+        "description": "Cyber.corp branding in UI",
+        "priority": "medium",
+        "conditions": ["UI rendered"],
+        "actions": ["apply colors (#0F172A, #312E81, #FFD700)", "use Roboto Mono"],
+        "metadata": {"ui": "branding", "integration": "Cyber.corp"}
+      },
+      {
+        "id": "UI005",
+        "description": "Display compliance badges",
+        "priority": "medium",
+        "conditions": ["UI rendered"],
+        "actions": ["show GDPR/SOC2 badges", "link to z://cybercorp/audit/"],
+        "metadata": {"ui": "compliance", "compliance": "SOC2"}
+      }
+    ],
+    "compliance": [
+      {
+        "id": "COMP001",
+        "description": "GDPR compliance for player data",
+        "priority": "critical",
+        "conditions": ["player data processed"],
+        "actions": ["obtain consent via UI", "log to Polygon"],
+        "metadata": {"compliance": "GDPR"}
+      },
+      {
+        "id": "COMP002",
+        "description": "Automated compliance scanning",
+        "priority": "medium",
+        "conditions": ["MCP config updated"],
+        "actions": ["run compliance tool", "report to z://ecosystem/mpc/audit/"],
+        "metadata": {"compliance": "automation", "security": "audit"}
+      },
+      {
+        "id": "COMP003",
+        "description": "Data deletion for players",
+        "priority": "high",
+        "conditions": ["player requests deletion"],
+        "actions": ["delete from z://ecosystem/", "confirm via email"],
+        "metadata": {"compliance": "GDPR"}
+      },
+      {
+        "id": "COMP004",
+        "description": "Validate game mechanics compliance",
+        "priority": "high",
+        "conditions": ["activity (e.g., thieving) triggered"],
+        "actions": ["check against 18 U.S.C. § 1030", "log to QuantumLedger"],
+        "metadata": {"compliance": "legal"}
+      },
+      {
+        "id": "COMP005",
+        "description": "Ensure zero-damage compliance",
+        "priority": "critical",
+        "conditions": ["high CPU/GPU load detected"],
+        "actions": ["engage Rust safety layer", "log to z://cybercorp/audit/"],
+        "metadata": {"compliance": "SOC2", "security": "zero-damage"}
+      }
+    ],
+    "game_mechanics": [
+      {
+        "id": "GM001",
+        "description": "Process survival activities",
+        "priority": "high",
+        "conditions": ["activity in (summoning, fishing, crafting)"],
+        "actions": ["generate instance", "store in z://ecosystem/activities/foundation/"],
+        "metadata": {"game_context": "survival", "semantic": "activity"}
+      },
+      {
+        "id": "GM002",
+        "description": "Process stealth activities",
+        "priority": "high",
+        "conditions": ["activity in (lockpick, thieving, sneaking)"],
+        "actions": ["apply centering algorithm", "store in z://ecosystem/activities/stealth/"],
+        "metadata": {"game_context": "stealth", "semantic": "activity"}
+      },
+      {
+        "id": "GM003",
+        "description": "Trigger consequence events",
+        "priority": "high",
+        "conditions": ["event in (murder, escape, heal)"],
+        "actions": ["generate outcome", "store in z://ecosystem/events/"],
+        "metadata": {"game_context": "consequence", "semantic": "event"}
+      },
+      {
+        "id": "GM004",
+        "description": "Apply holiday theme modifiers",
+        "priority": "medium",
+        "conditions": ["theme in (christmas, halloween)"],
+        "actions": ["apply lucky boost", "store in z://ecosystem/themes/holiday/"],
+        "metadata": {"game_context": "holiday", "semantic": "modifier"}
+      },
+      {
+        "id": "GM005",
+        "description": "Validate semantic integrity",
+        "priority": "high",
+        "conditions": ["activity or event processed"],
+        "actions": ["check etymology (e.g., looting = theft)", "log to QuantumLedger"],
+        "metadata": {"game_context": "semantic integrity", "compliance": "ISO27001"}
+      },
+      {
+        "id": "GM006",
+        "description": "Generate attribute variants",
+        "priority": "high",
+        "conditions": ["entity (e.g., skills) processed"],
+        "actions": ["apply fractal recursion", "store in z://ecosystem/generative/"],
+        "metadata": {"game_context": "generative", "performance": "low latency"}
+      }
+    ],
+    "chat_integration": [
+      {
+        "id": "CHAT001",
+        "description": "Process Cyber.corp chat commands",
+        "priority": "high",
+        "conditions": ["command (e.g., !chatCybercorp) received"],
+        "actions": ["process via ARTEMIS AI", "log to z://cybercorp/audit/"],
+        "metadata": {"integration": "Cyber.corp", "compliance": "SOC2"}
+      },
+      {
+        "id": "CHAT002",
+        "description": "Validate chat compliance",
+        "priority": "critical",
+        "conditions": ["chat query processed"],
+        "actions": ["check GDPR/SOC2", "log to Polygon"],
+        "metadata": {"compliance": "chat", "security": "audit"}
+      },
+      {
+        "id": "CHAT003",
+        "description": "Rate limit chat requests",
+        "priority": "high",
+        "conditions": ["chat requests > 1000/s"],
+        "actions": ["throttle via NGINX", "notify via Web Push"],
+        "metadata": {"performance": "rate limiting", "integration": "Cyber.corp"}
+      },
+      {
+        "id": "CHAT004",
+        "description": "Integrate chat with gameplay",
+        "priority": "high",
+        "conditions": ["chat triggers activity (e.g., fishing)"],
+        "actions": ["generate activity instance", "update z://ecosystem/game_state.json"],
+        "metadata": {"game_context": "chat-driven", "semantic": "activity"}
+      },
+      {
+        "id": "CHAT005",
+        "description": "Cache chat responses",
+        "priority": "medium",
+        "conditions": ["frequent chat queries detected"],
+        "actions": ["cache in Memcached", "set 300s expiration"],
+        "metadata": {"performance": "caching", "integration": "Cyber.corp"}
+      }
+    ],
+    "basin_orchestration": [
+      {
+        "id": "BASIN001",
+        "description": "Orchestrate compute basin",
+        "priority": "high",
+        "conditions": ["compute load > 80%"],
+        "actions": ["allocate 80% GPU, 20% CPU", "log to p://configs/basins/compute/"],
+        "metadata": {"basin": "compute", "performance": "resource allocation"}
+      },
+      {
+        "id": "BASIN002",
+        "description": "Orchestrate security basin",
+        "priority": "critical",
+        "conditions": ["threat detected"],
+        "actions": ["enable quantum encryption", "log to QuantumLedger"],
+        "metadata": {"basin": "security", "security": "quantum"}
+      },
+      {
+        "id": "BASIN003",
+        "description": "Auto-tune basin resources",
+        "priority": "medium",
+        "conditions": ["performance metrics available"],
+        "actions": ["optimize neural networks", "log to p://configs/basins/{BASIN}/logs/"],
+        "metadata": {"basin": "auto-tuning", "performance": "optimization"}
+      },
+      {
+        "id": "BASIN004",
+        "description": "Ensure basin uptime",
+        "priority": "critical",
+        "conditions": ["downtime detected"],
+        "actions": ["trigger active-active failover", "alert via Slack"],
+        "metadata": {"basin": "high availability", "resilience": "failover"}
+      },
+      {
+        "id": "BASIN005",
+        "description": "Monitor basin performance",
+        "priority": "high",
+        "conditions": ["basin action executed"],
+        "actions": ["log to Prometheus", "visualize via Grafana"],
+        "metadata": {"basin": "monitoring", "performance": "metrics"}
+      }
+    ],
+    "ai_processing": [
+      {
+        "id": "AI001",
+        "description": "Process activities with ARTEMIS AI",
+        "priority": "high",
+        "conditions": ["activity requires AI (e.g., fishing outcome)"],
+        "actions": ["process via ARTEMIS AI", "log to z://ecosystem/mpc/audit/"],
+        "metadata": {"game_context": "AI-driven", "performance": "low latency"}
+      },
+      {
+        "id": "AI002",
+        "description": "Detect anomalies in gameplay",
+        "priority": "high",
+        "conditions": ["unusual activity pattern detected"],
+        "actions": ["analyze with ARTEMIS ML", "alert via PagerDuty"],
+        "metadata": {"security": "ARTEMIS ML", "game_context": "anomaly detection"}
+      },
+      {
+        "id": "AI003",
+        "description": "Optimize AI compute resources",
+        "priority": "medium",
+        "conditions": ["AI load > 80%"],
+        "actions": ["allocate additional GPUs", "log to p://configs/basins/compute/"],
+        "metadata": {"basin": "compute", "performance": "resource allocation"}
+      },
+      {
+        "id": "AI004",
+        "description": "Ensure zero-damage AI processing",
+        "priority": "critical",
+        "conditions": ["high AI compute load detected"],
+        "actions": ["engage Rust safety layer", "log to QuantumLedger"],
+        "metadata": {"security": "zero-damage", "compliance": "SOC2"}
+      },
+      {
+        "id": "AI005",
+        "description": "Cache AI responses",
+        "priority": "medium",
+        "conditions": ["frequent AI queries detected"],
+        "actions": ["cache in Redis", "set 300s expiration"],
+        "metadata": {"performance": "caching", "game_context": "AI-driven"}
+      }
+    ]
+  }
+}
