@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-chat-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: ai-chat-backend
+  template:
+    metadata:
+      labels:
+        app: ai-chat-backend
+    spec:
+      containers:
+      - name: backend
+        image: yourrepo/ai-chat-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ai-chat-secrets
+              key: jwt_secret
+        - name: AES_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ai-chat-secrets
+              key: aes_key
