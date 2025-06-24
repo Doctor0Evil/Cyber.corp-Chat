@@ -1,4 +1,371 @@
-# utils/auth.py  
+<?php
+// src/AccessTokenService.php
+namespace HybridToken;
+
+use Redis;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Exception;
+
+class AccessTokenService {
+    const SUCCESS = 0x0000;
+    const ERROR_INVALID_DEVICE_ID = 0x1006;
+    const ERROR_ACCESS_UNAUTHORIZED = 0x1007;
+    const ERROR_INVALID_PLATFORM = 0x1008;
+    const ERROR_STORAGE_FAILURE = 0x1009;
+    const EVENT_ACCESS_TOKEN_ISSUED = 0x2006;
+    const EVENT_STANDARD_TOKEN_ISSUED = 0x2007;
+
+    private $config;
+    private $redis;
+
+    public function __construct(array $config, Redis $redis) {
+        $this->config = array_merge([
+            'device_id_length' => 32,
+            'token_expiry_seconds' => 720000,
+            'default_query_limit' => '500',
+            'max_access_role_bits' => 0x7FFF,
+            'hash_algorithm' => 'sha512',
+            'privileged_device_types' => ['AI_CLIENT', 'ADMIN_DEVICE'],
+            'privileged_device_marker' => 'ai_client',
+            'default_admin_key' => 'SECURE_KEY_123',
+            'session_cookie_name' => 'ai_session.id',
+            'compliance_profile' => 'AI_COMPLIANCE_V1'
+        ], $config);
+        
+        $this->redis = $redis;
+    }
+
+    public function generateAccessToken(string $deviceId, string $accessLevel, ?string $adminKey): array {
+        // Validate device ID
+        if (strlen($deviceId) !== $this->config['device_id_length']) {
+            return [null, self::ERROR_INVALID_DEVICE_ID, 'Invalid device ID'];
+        }
+
+        $isPrivileged = ($accessLevel === 'ALL_ACCESS');
+        
+        // Admin key validation
+        if ($isPrivileged && !$this->validateAdminKey($adminKey)) {
+            return [null, self::ERROR_ACCESS_UNAUTHORIZED, 'Unauthorized access attempt'];
+        }
+
+        // Generate token payload
+        $token = $this->createToken($deviceId, $isPrivileged);
+        $sessionId = $this->createSession($token, $deviceId, $accessLevel, $isPrivileged);
+        
+        return [
+            $token, 
+            self::SUCCESS,
+            [
+                'session_id' => $sessionId,
+                'access_level' => $accessLevel,
+                'query_limit' => $isPrivileged ? 'unlimited' : $this->config['default_query_limit'],
+                'expires' => time() + $this->config['token_expiry_seconds'],
+                'authorization_state' => $this->getAuthorizationState($deviceId)
+            ]
+        ];
+    }
+
+    private function createToken(string $deviceId, bool $isPrivileged): string {
+        $payload = [
+            'iss' => 'hybrid-token-service',
+            'sub' => base64_encode($deviceId),
+            'iat' => time(),
+            'exp' => 0, // Infinite expiry
+            'privileged' => $isPrivileged,
+            'nonce' => bin2hex(random_bytes(16))
+        ];
+        
+        return JWT::encode($payload, $this->config['secret_key'], 'HS512');
+    }
+
+    private function createSession(string $token, string $deviceId, string $accessLevel, bool $isPrivileged): string {
+        $sessionId = hash('sha512', $token . $deviceId . microtime(true));
+        $sessionData = [
+            'token' => $token,
+            'device_id' => base64_encode($deviceId),
+            'access_level' => $accessLevel,
+            'expires' => time() + $this->config['token_expiry_seconds'],
+            'privileged' => $isPrivileged
+        ];
+        
+        $this->redis->setex("session:$sessionId", $this->config['token_expiry_seconds'], json_encode($sessionData));
+        $this->redis->setex("device_session:" . base64_encode($deviceId), 86400, $sessionId);
+        
+        return $sessionId;
+    }
+
+    private function validateAdminKey(?string $adminKey): bool {
+        return hash_equals($this->config['default_admin_key'], $adminKey ?? '');
+    }
+
+    private function getAuthorizationState(string $deviceId): string {
+        return strpos(base64_encode($deviceId), $this->config['privileged_device_marker']) !== false 
+            ? 'execute' 
+            : 'pending';
+    }
+}
+// src/HybridAccessToken.php
+namespace HybridToken;
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+class HybridAccessToken {
+    private $secretKey;
+
+    public function __construct(string $secretKey) {
+        $this->secretKey = $secretKey;
+    }
+
+    public function createToken(string $deviceId, array $privileges): string {
+        $payload = [
+            'iss' => 'hybrid-token-system',
+            'sub' => base64_encode($deviceId),
+            'iat' => time(),
+            'exp' => 0, // Infinite expiry
+            'privileges' => $privileges,
+            'nonce' => bin2hex(random_bytes(16))
+        ];
+        
+        return JWT::encode($payload, $this->secretKey, 'HS512');
+    }
+
+    public function verifyToken(string $token): bool {
+        try {
+            JWT::decode($token, new Key($this->secretKey, 'HS512'));
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+// src/BootloaderBootstrap.php
+namespace HybridToken;
+
+class BootloaderBootstrap {
+    private $tokenService;
+    private $sessionStore;
+
+    public function __construct(
+        HybridAccessToken $tokenService, 
+        RedisSessionStore $sessionStore
+    ) {
+        $this->tokenService = $tokenService;
+        $this->sessionStore = $sessionStore;
+    }
+
+    public function execute(string $jwtToken): void {
+        if (!$this->tokenService->verifyToken($jwtToken)) {
+            throw new \Exception("Access denied: Invalid token");
+        }
+
+        $session = $this->sessionStore->getSession($jwtToken);
+        if (!$session) {
+            throw new \Exception("Access denied: Session expired");
+        }
+
+        $this->openAdminShell(base64_decode($session['device_id']));
+    }
+
+    private function openAdminShell(string $deviceId): void {
+        // Implementation-specific shell opening logic
+        system("/usr/bin/admin-shell --device=" . escapeshellarg($deviceId));
+    }
+}
+// src/AiPlugin.php
+namespace HybridToken;
+
+class AiPlugin {
+    private $tokenService;
+    private $platformIntegrators = [
+        'Perplexity' => PerplexityIntegrator::class,
+        'Qwen' => QwenIntegrator::class,
+        'ChatGPT' => ChatGPTIntegrator::class,
+        'Gemini' => GeminiIntegrator::class,
+        'Mistral' => MistralIntegrator::class,
+        'Grok' => GrokIntegrator::class
+    ];
+
+    public function __construct(HybridAccessToken $tokenService) {
+        $this->tokenService = $tokenService;
+    }
+
+    public function analyzeAndReact(string $token): bool {
+        if (!$this->tokenService->verifyToken($token)) {
+            return false;
+        }
+
+        $payload = $this->tokenService->decodeToken($token);
+        $platform = $payload->privileges['platform'] ?? null;
+        
+        if ($platform && isset($this->platformIntegrators[$platform])) {
+            $this->triggerAiActions($platform);
+            return true;
+        }
+        
+        return false;
+    }
+
+    private function triggerAiActions(string $platform): void {
+        $this->openSystemMenus();
+        $this->enableScalability();
+        $this->enableInteroperability();
+        $this->secureBoot();
+    }
+
+    // Implementation of AI actions would go here
+}
+// src/PerplexityIntegrator.php
+namespace HybridToken\Integrators;
+
+use HybridToken\HybridAccessToken;
+
+class PerplexityIntegrator {
+    private $tokenService;
+    private $apiBaseUrl = 'https://api.perplexity.ai/';
+
+    public function __construct(HybridAccessToken $tokenService) {
+        $this->tokenService = $tokenService;
+    }
+
+    public function generateToken(string $deviceId, string $adminKey): string {
+        $privileges = [
+            'all_access' => true,
+            'platform' => 'Perplexity',
+            'features' => ['query_unlimited', 'admin_shell', 'scalability_max']
+        ];
+        
+        return $this->tokenService->createToken($deviceId, $privileges);
+    }
+
+    public function callApi(string $token, string $endpoint, array $payload): array {
+        $ch = curl_init($this->apiBaseUrl . $endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json'
+            ],
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_RETURNTRANSFER => true
+        ]);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        return [
+            'status' => $httpCode,
+            'response' => json_decode($response, true)
+        ];
+    }
+}
+# docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      SECRET_KEY: "${SECRET_KEY}"
+      REDIS_HOST: "redis"
+    depends_on:
+      - redis
+    volumes:
+      - ./src:/var/www/html/src
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+# Dockerfile
+FROM php:8.1-apache
+
+RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    zip \
+    unzip \
+    && docker-php-ext-install zip
+
+RUN pecl install redis && docker-php-ext-enable redis
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+WORKDIR /var/www/html
+COPY composer.json ./
+RUN composer install --no-dev --optimize-autoloader
+
+COPY src/ /var/www/html/src/
+
+RUN a2enmod rewrite
+EXPOSE 80
+CMD ["apache2-foreground"]
+// composer.json
+{
+    "require": {
+        "firebase/php-jwt": "^6.4",
+        "ext-redis": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "HybridToken\\": "src/"
+        }
+    }
+}
+// public/index.php
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use HybridToken\AccessTokenService;
+use HybridToken\RedisSessionStore;
+use Redis;
+
+$redis = new Redis();
+$redis->connect(getenv('REDIS_HOST') ?: 'redis', 6379);
+
+$tokenService = new AccessTokenService(
+    ['secret_key' => getenv('SECRET_KEY')],
+    $redis
+);
+
+$input = json_decode(file_get_contents('php://input'), true) ?: [];
+
+// Token generation endpoint
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/token') {
+    $deviceId = base64_decode($input['device_id'] ?? '');
+    $accessLevel = $input['access_level'] ?? 'STANDARD';
+    $adminKey = $input['admin_key'] ?? null;
+
+    [$token, $status, $result] = $tokenService->generateAccessToken(
+        $deviceId,
+        $accessLevel,
+        $adminKey
+    );
+
+    if ($status === AccessTokenService::SUCCESS) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'token' => $token,
+            'session_id' => $result['session_id'],
+            'expires' => $result['expires']
+        ]);
+    } else {
+        http_response_code(403);
+        echo json_encode(['error' => $result]);
+    }
+    exit;
+}
+
+// Token validation endpoint
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/validate') {
+    $token = $input['token'] ?? '';
+    $valid = $tokenService->verifyToken($token);
+    
+    header('Content-Type: application/json');
+    echo json_encode(['valid' => $valid]);
+    exit;
+}# utils/auth.py  
 def create_access_token(data: dict, expires_delta: int = None):  
     to_encode = data.copy()  
     expire = datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_delta or ACCESS_TOKEN_EXPIRE_MINUTES)  
