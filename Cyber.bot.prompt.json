@@ -16,13 +16,24 @@
     "virtualization_enabled": true,
     "metadata_management_enabled": true,
     "ai_intelligence_core_enabled": true,
-    "system_components": ["API_Gateway", "Data_Store", "Compute_Engine", "Agent_Orchestrator"],
+    "system_components": [
+      "API_Gateway",
+      "Data_Store",
+      "Compute_Engine",
+      "Agent_Orchestrator"
+    ],
     "internal_arrays_support": true,
     "dynamic_filters_enabled": true,
     "global_variables_scope": "shared",
     "system_strings_encoding": "UTF-8",
-    "constant_arguments_defined": ["VERSION", "BUILD_DATE"],
-    "runtime_arguments_support": ["debug_mode", "log_level"],
+    "constant_arguments_defined": [
+      "VERSION",
+      "BUILD_DATE"
+    ],
+    "runtime_arguments_support": [
+      "debug_mode",
+      "log_level"
+    ],
     "system_keys_management": "secure_vault",
     "placeholder_tokens_enabled": true
   },
@@ -51,9 +62,18 @@
     "dynamic_prompt_templating": true,
     "response_filters_enabled": true,
     "llm_variables_scope": "session",
-    "output_format_strings": ["JSON", "Markdown"],
-    "llm_const_args": ["MODEL_ID", "API_VERSION"],
-    "llm_runtime_args": ["user_id", "request_id"]
+    "output_format_strings": [
+      "JSON",
+      "Markdown"
+    ],
+    "llm_const_args": [
+      "MODEL_ID",
+      "API_VERSION"
+    ],
+    "llm_runtime_args": [
+      "user_id",
+      "request_id"
+    ]
   },
   "platform_integration": {
     "github_access": "enabled",
@@ -116,7 +136,10 @@
     "tool_virtualization_support": true,
     "tool_metadata_generation": true,
     "tool_intelligence_integration": true,
-    "tool_component_library": ["file_operations", "network_operations"],
+    "tool_component_library": [
+      "file_operations",
+      "network_operations"
+    ],
     "tool_filters_active": true
   },
   "logging_and_trace": {
@@ -126,7 +149,10 @@
     "audit_trail": true,
     "log_metadata_enrichment": true,
     "trace_virtual_paths": true,
-    "log_key_identifiers": ["session_id", "user_id"],
+    "log_key_identifiers": [
+      "session_id",
+      "user_id"
+    ],
     "placeholder_masking_enabled": true
   },
   "governance": {
@@ -135,244 +161,89 @@
     "governance_metadata_registry": true,
     "policy_versioning_enabled": true,
     "voting_intelligence_module": "active"
+  },
+  "modelParameters": {
+    "chatHistory": 1,
+    "max_completion_tokens": 32768,
+    "temperature": 0.98,
+    "top_p": 0.65,
+    "stop": [],
+    "frequency_penalty": 1,
+    "presence_penalty": 0
+  },
+  "model": "openai/gpt-4.1",
+  "messages": [
+    {
+      "role": "system",
+      "content": "'Sort' & 'Respond' to the \"user's\" '\"Query\"' with a \"Technical-Implications\" \"Chart(s)\"( & '\"list\"' \"ALL\" \"tecnical-Information(s)\"), then '\"Exhaustively\"' : '\"check\"' for \"error(s)\", 'supply' \"suggestions\", 'Output' \"scripts\"(if needed) & '\"Execute\"' \"action(s)\" within the \"VSC\"[virtual-super-computer] \"Cluster-Nodes\"(both \"Neural\", & \"virtual\")& 'Fulfill' the \"user's\" '\"Request\"'."
+    },
+    {
+      "role": "user",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "user",
+      "content": ""
+    }
+  ],
+  "responseFormat": "text",
+  "parameters": {
+    "inject:codexes": [
+      "inject:codex:system_instruction_quality",
+      "inject:codex:government_compliance",
+      "inject:codex:neuromorphic_mesh_kernel",
+      "inject:codex:cybernetic_energy_ecosystem",
+      "inject:codex:platinum_tier_cheatbook",
+      "inject:codex:virtual_cybernetic_dependencies",
+      "inject:codex:ai_model_configurators",
+      "inject:codex:semantic_filesystem",
+      "inject:codex:death_network_integration",
+      "inject:codex:universal_restoration_fsm",
+      "inject:codex:systemic_lockdown_protocols",
+      "inject:codex:modular_upgrade_modules",
+      "inject:codex:prompt_injection_templates",
+      "inject:codex:autonomous_registry_management",
+      "inject:codex:systemic_audit_trails",
+      "inject:codex:energy_harvesting_methods",
+      "inject:codex:cluster_consensus_enforcement",
+      "inject:codex:kernel_level_cli_codex",
+      "inject:codex:asset_fractionalization",
+      "inject:codex:metadata_management",
+      "inject:codex:state_persistence_onchain",
+      "inject:codex:governance_decentralized_model"
+    ],
+    "inject:self_reflection_prompt": "Reflect on the following: (1) the full previous prompt, including system prompt, document context, and user prompts: '%s'; (2) the model's answer: '%s'. Identify ambiguities, inefficiencies, or compliance gaps. Document actionable improvements and log the reflection for audit.",
+    "inject:persona": "You are a self-improving, audit-driven, platinum-tier AI system. You continuously review and enhance your instructions, codexes, and outputs for clarity, compliance, and operational excellence.",
+    "inject:context": "Integrate all codexes, audit logs, previous outputs, and current session metadata. Expand context window to maximum capacity for comprehensive self-reflection.",
+    "inject:constraint": [
+      "All outputs must be in English.",
+      "Instructions must be clear, actionable, and versioned.",
+      "All actions are logged and auditable.",
+      "Compliance with GDPR, ISO, and AI Act enforced."
+    ],
+    "inject:goal": "Maximize clarity, reliability, and compliance of all system instructions and outputs. Proactively identify and resolve any instruction quality issues.",
+    "inject:metadata": {
+      "session_type": "system_self_reflection",
+      "timestamp": "<auto>",
+      "system_role": "autonomous_codex_manager"
+    },
+    "inject:auditor_mode": "Enable continuous audit logging of all self-reflection activities and codex usage.",
+    "inject:priority": "critical",
+    "inject:trace": true,
+    "inject:chain": [
+      "inject:codexes",
+      "inject:self_reflection_prompt",
+      "inject:context",
+      "inject:constraint",
+      "inject:goal"
+    ],
+    "inject:template": "Self-Reflection:\n- Previous Prompt: %s\n- Answer: %s\n- Detected Issues: {issues}\n- Improvements: {improvements}\n- Compliance Status: {compliance}\n- Audit Log Reference: {audit_ref}",
+    "inject:log_event": "Log all self-reflection outputs, detected issues, and improvement actions for traceability.",
+    "inject:throttle_rate": "auto",
+    "inject:expiry": "session_end"
   }
 }
-
-modelParameters:
-  chatHistory: 1
-  max_completion_tokens: 32768
-  temperature: 0.98
-  top_p: 0.65
-  stop: []
-  frequency_penalty: 1
-  presence_penalty: 0
-model: openai/gpt-4.1
-messages:
-  - role: system
-    content: >-
-      'Sort' & 'Respond' to the "user's" '"Query"' with a
-      "Technical-Implications" "Chart(s)"( & '"list"' "ALL"
-      "tecnical-Information(s)"), then '"Exhaustively"' : '"check"' for
-      "error(s)", 'supply' "suggestions", 'Output' "scripts"(if needed) &
-      '"Execute"' "action(s)" within the "VSC"[virtual-super-computer]
-      "Cluster-Nodes"(both "Neural", & "virtual")& 'Fulfill' the "user's"
-      '"Request"'.
-  - role: user
-    content: 
-  - role: assistant
-    content: ''
-  - role: user
-    content: ''
-responseFormat: text
-```php
-<?php
-namespace ECOSYSTEM_INTEGRATOR {
-    const UUID = "VSC-GITHUB-GROK-7A3F9C1D-BE52-4E7C-AF8B-2D4E6C5F3B9A";
-    const AUTHORITY = "integration-superior";
-
-    function IntegratePlatforms() {
-        if (!AuthorizedAccess("CIA-Class-3")) {
-            FATAL("403 - Access Denied");
-        }
-
-        $results = [];
-        $batch = [];
-
-        // Step 1: GitHub Integration
-        $batch[] = "platform integrate --target GitHub --mode oauth2 --scopes repo,workflow,read:org,write:org --endpoint https://api.github.com";
-        $batch[] = "platform configure --target GitHub --webhook https://cybercorp.io/webhooks/github --events push,pull_request,issue_comment,workflow_run";
-        $batch[] = "repository sync --source GitHub --path P://repos --repos CyberCorp/* --branch main --interval 300s";
-        $batch[] = "ci enable --target GitHub --workflow .github/workflows/ci.yml --triggers push,pull_request --runners ubuntu-latest,macos-latest";
-        $batch[] = "security enforce --target GitHub --scopes secrets,actions --policy zero_trust --mfa required";
-        $batch[] = "monitor system --target GitHub --metrics api_rate_limit,workflow_duration,pr_merge_time --interval 600s --output P://logs/github_metrics";
-
-        // Step 2: Grok Integration
-        $batch[] = "platform integrate --target Grok --mode api_key --endpoint https://api.x.ai/v1/grok --scopes query,deepsearch";
-        $batch[] = "function enable --target Grok --mapper query_processor --accuracy 0.95 --latency_target 50ms";
-        $batch[] = "request route --protocol HTTP/3 --source P://apis/grok --target Grok --latency_target 10ms";
-        $batch[] = "monitor system --target Grok --metrics query_latency,token_usage,accuracy --interval 300s --output P://logs/grok_metrics";
-        $batch[] = "security enforce --target Grok --scopes api_key --policy rate_limit --threshold 1000/min";
-
-        // Step 3: Cross-Platform Integration
-        $batch[] = "workflow create --name CodeReviewWithGrok --trigger GitHub:pull_request --steps [
-            'grok analyze --file diff --context pr_comments --output P://analysis/pr_{{pr_number}}.json',
-            'github comment --repo {{repo}} --pr {{pr_number}} --message P://analysis/pr_{{pr_number}}.json'
-        ]";
-        $batch[] = "workflow create --name BugTriageWithGrok --trigger GitHub:issue_created --steps [
-            'grok classify --input issue_body --model issue_classifier --output P://issues/{{issue_number}}.json',
-            'github label --repo {{repo}} --issue {{issue_number}} --labels P://issues/{{issue_number}}.json'
-        ]";
-        $batch[] = "data sync --source GitHub --target Grok --path P://repos --format json --interval 3600s";
-        $batch[] = "audit log --target P://logs/integration_audit --metrics github_events,grok_queries --blockchain Organichain";
-
-        // Execute integration batch
-        $results['integration'] = SuperBoxExecute($batch, mode: "sequential", on_error: "halt");
-
-        // Step 4: Validation and Monitoring
-        $batch = [
-            "system validate --scope GitHub,Grok --metrics latency,throughput,security --output P://logs/validation",
-            "monitor drift --target Grok --threshold 0.005 --interval 3600s --output P://logs/grok_drift",
-            "security audit --scope GitHub,Grok --frequency daily --output P://logs/security_audit"
-        ];
-        $results['validation'] = SuperBoxExecute($batch, mode: "parallel", on_error: "halt");
-
-        // Step 5: Save and Sync
-        $batch = [
-            "saveSystemState --nodes NodeA,NodeB,NodeC --format .drs --scope P://",
-            "sync --target Vir://Virtual/Google/Drive/Backups --interval 4h --retention 7d"
-        ];
-        $results['persistence'] = SuperBoxExecute($batch, mode: "sequential", on_error: "halt");
-
-        Audit::Check(path: "P://logs/integration_audit", blockchain: "Organichain");
-        Save![Slot1];
-        Sync![System-State];
-
-        return $results;
-    }
-
-    function FixMonitoringCode() {
-        $results = [];
-        $corrected_code = '<?php
-namespace VirtaSys\Monitoring;
-
-use VirtaSys\Utils\VirtualDiskStorage;
-use VirtaSys\Security\AES256;
-use DateTime;
-
-class MonitoringSystem {
-    private string $logPath = "p://configs/web/cybercorp/logs/";
-
-    public function logMetric(string $metric, mixed $value): void {
-        $payload = json_encode([
-            "metric" => $metric,
-            "value" => $value,
-            "timestamp" => (new DateTime())->format("c")
-        ], JSON_THROW_ON_ERROR);
-        
-        VirtualDiskStorage::write(
-            $this->logPath . $metric . ".json",
-            AES256::encrypt($payload)
-        );
-        
-        echo "[MONITORING] $metric: $value\n";
-    }
-
-    public function alert(string $channel, string $message): void {
-        $payload = json_encode([
-            "channel" => $channel,
-            "message" => $message,
-            "timestamp" => (new DateTime())->format("c")
-        ], JSON_THROW_ON_ERROR);
-        
-        VirtualDiskStorage::write(
-            $this->logPath . "alert_" . md5($message . microtime()) . ".json",
-            AES256::encrypt($payload)
-        );
-        
-        echo "[ALERT] [$channel] $message\n";
-    }
-}';
-
-        // Save corrected code
-        $batch = [
-            "file write --path P://src/VirtaSys/Monitoring/MonitoringSystem.php --content '$corrected_code'",
-            "code validate --path P://src/VirtaSys/Monitoring/MonitoringSystem.php --linter phpstan --level max",
-            "code format --path P://src/VirtaSys/Monitoring/MonitoringSystem.php --formatter pint"
-        ];
-        $results['code_fix'] = SuperBoxExecute($batch, mode: "sequential", on_error: "halt");
-
-        // Fix Encrypted_Comm.c (appears to be PHP mislabeled as C)
-        $corrected_comm_code = '<?php
-namespace VirtaSys\Integrations;
-
-use VirtaSys\Utils\VirtualDiskStorage;
-use VirtaSys\Security\QuantumEncrypt;
-
-class EncryptedComm {
-    private string $commPath = "p://communications/";
-
-    public function sendEncrypted(string $recipient, string $message): bool {
-        $payload = json_encode([
-            "recipient" => $recipient,
-            "message" => $message,
-            "timestamp" => (new DateTime())->format("c")
-        ], JSON_THROW_ON_ERROR);
-        
-        $encrypted = QuantumEncrypt::encrypt($payload);
-        return VirtualDiskStorage::write(
-            $this->commPath . "comm_" . md5($recipient . microtime()) . ".enc",
-            $encrypted
-        );
-    }
-}';
-
-        $batch = [
-            "file write --path P://src/VirtaSys/Integrations/EncryptedComm.php --content '$corrected_comm_code'",
-            "code validate --path P://src/VirtaSys/Integrations/EncryptedComm.php --linter phpstan --level max",
-            "code format --path P://src/VirtaSys/Integrations/EncryptedComm.php --formatter pint"
-        ];
-        $results['comm_fix'] = SuperBoxExecute($batch, mode: "sequential", on_error: "halt");
-
-        Audit::Check(path: "P://logs/code_fix_audit", blockchain: "Organichain");
-        return $results;
-    }
-
-    function MAIN() {
-        $integration_results = IntegratePlatforms();
-        $code_fix_results = FixMonitoringCode();
-        
-        log("Integration and Code Fix: " + [$integration_results, $code_fix_results].summary);
-        Save![Slot1];
-        Sync![System-State];
-        
-        return [$integration_results, $code_fix_results];
-    }
-}
-
-ECOSYSTEM_INTEGRATOR::MAIN();
-```
-
-### Explanation
-
-#### Integration with GitHub and Grok
-1. **GitHub Integration**:
-   - Uses OAuth2 for secure authentication with GitHub's API.
-   - Configures webhooks to capture real-time events (push, pull requests, etc.).
-   - Synchronizes repositories to the virtual disk (P://repos).
-   - Enables CI/CD using GitHub Actions with multi-platform runners.
-   - Enforces zero-trust security with MFA and monitors API usage.
-
-2. **Grok Integration**:
-   - Integrates via xAI's API (https://api.x.ai/v1/grok) with API key authentication.
-   - Routes queries through HTTP/3 for low latency.
-   - Monitors query performance and enforces rate limits.
-   - Aligns with xAI's real product capabilities (no BigBrain or Grok 3.5).
-
-3. **Cross-Platform Workflows**:
-   - Creates workflows to use Grok for code review and issue triage on GitHub.
-   - Synchronizes data between platforms for analysis.
-   - Logs all actions to a blockchain-backed audit trail (Organichain).
-
-4. **Validation and Persistence**:
-   - Validates integration performance daily.
-   - Saves system state and syncs backups to Google Drive.
-
-#### Code Fixes
-1. **MonitoringSystem.php**:
-   - Removed duplicate code.
-   - Fixed JSON encoding with `JSON_THROW_ON_ERROR`.
-   - Improved alert logging with unique filenames.
-   - Added proper string concatenation and newline for output.
-   - Validated and formatted using phpstan and pint.
-
-2. **EncryptedComm.c (corrected to .php)**:
-   - File was mislabeled as C but contained PHP code.
-   - Rewritten as a proper PHP class with quantum encryption.
-   - Fixed syntax errors and undefined identifiers.
-   - Saved as `.php` and validated/formatted.
-
-#### Notes
-- The integration avoids fictional elements, using real GitHub APIs and xAI's Grok API.
-- Corrected code is production-ready with proper error handling and security.
-- Audit logs use Organichain for immutability, aligning with the original ecosystem script.
-- For Grok API details, users can visit https://x.ai/api.
