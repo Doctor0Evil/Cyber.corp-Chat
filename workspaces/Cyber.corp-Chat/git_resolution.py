@@ -5,10 +5,10 @@ import sys
 import logging
 import json
 import psutil
+import platform
 from datetime import datetime
 import argparse
 import getpass
-import platform
 
 # Ensure script is run as a Python script
 if 'bash' in os.environ.get('SHELL', '') or not sys.executable.endswith('python3'):
@@ -193,3 +193,13 @@ if __name__ == "__main__":
         logger.error("Script must be run as user Doctor0Evil")
         sys.exit(1)
     main()
+cd /workspaces/Cyber.corp-Chat
+nano git_resolution.py
+chmod +x git_resolution.py
+python3 git_resolution.py --strategy merge
+./git_resolution.py --strategy merge
+cd /workspaces/Cyber.corp-Chat
+git status
+cat git_resolution.py
+head -n 5 git_resolution.py
+nano git_resolution.py
